@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speech to Text</title>
+    <style>
+        #log {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            height: 200px;
+            overflow-y: scroll;
+            background-color: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <button id="startBtn">Start Recording</button>
+    <button id="stopBtn" disabled>Stop Recording</button>
+    <div id="result"></div>
+    <div id="log"></div>
+
+    <script>
+        const startBtn = document.getElementById('startBtn');
+        const stopBtn = document.getElementById('stopBtn');
+        const resultDiv = document.getElementById('result');
+        const logDiv = document.getElementById('log');
+
+        function logMessage(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = message;
+            logDiv.appendChild(logEntry);
+            logDiv.scrollTop = logDiv.scrollHeight; // Scroll to the bottom
+        }
+
+        logMessage('Script loaded');
+
+        let recognition;
+        try {
+            recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+            logMessage('SpeechRecognition initialized');
+        } catch (e) {
+            logMessage('SpeechRecognition not supported in this browser: ' + e.message);
+        }
+
+        if (recognition) {
+            recognition.continuous = true;
+            recognition.interimResults = true;
+
+            recognition.onstart = () => {
+                logMessage('Speech recognition started');
+            };
+
+            recognition.onend = () => {
+                logMessage('Speech recognition ended');
+            };
+
+            recognition.onresult = (event) => {
+                logMessage('Speech recognition result received');
+                let transcript = '';
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+                resultDiv.innerText = transcript;
+                logMessage('Transcript updated: ' + transcript);
+            };
+
+            recognition.onerror = (event) => {
+                logMessage('Speech recognition error detected: ' + event.error);
+            };
+
+            startBtn.addEventListener('click', () => {
+                recognition.start();
+                startBtn.disabled = true;
+                stopBtn.disabled = false;
+                logMessage('Start button clicked, recognition started');
+            });
+
+            stopBtn.addEventListener('click', () => {
+                recognition.stop();
+                startBtn.disabled = false;
+                stopBtn.disabled = true;
+                logMessage('Stop button clicked, recognition stopped');
+            });
+        }
+    </script>
+</body>
+</html>
